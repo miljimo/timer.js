@@ -2,11 +2,7 @@ if(!utils)var utils={};
 
 (function(utils)
 {
-	var timers  = timers || {};
-	var PENDING = 0;
-	var WAITING = 1;
-	var ACTIVE  = 2;
-	var KILLED  = 3;
+	var timers  = timers || {};	
 	var CURRENT = CURRENT || null;
 	var COUNTER = COUNTER || 0;
 	var Timer =(function(name, interval, repeats)
@@ -25,18 +21,18 @@ if(!utils)var utils={};
 	   Object.defineProperties(this, {"tname":{value:name,writable:false,enumerable:false}});
 	   Object.defineProperties(this, {"tid":{value:(++COUNTER),writable:false,enumerable:false}});
       if(timers[name]) throw new Error("Timer with the given name already exists");
-      timers[this.tname]={id:this.tid, timer:this, state: PENDING}
+      timers[this.tname]={id:this.tid, timer:this, state: Timer.PENDING}
 	});
 
 	Timer.prototype.start =(function(callback)
 	{   
-		if(!callback && timers[this.tname].state==KILLED) return;
-	    timers[this.tname].state= WAITING;
+		if(!callback && timers[this.tname].state==Timer.KILLED) return;
+	    timers[this.tname].state= Timer.WAITING;
 		this.interval = (typeof this.interval==="number"&& this.interval >=0)?this.interval: 1000;
 	    this.repeats = (typeof this.repeats==="number" && this.repeats > 0)?this.repeats: null;
 	    this.id = window.setInterval((function()
 	    {
-	    	timers[this.tname].state= ACTIVE;
+	    	timers[this.tname].state= Timer.ACTIVE;
 	    	CURRENT=this;
 	    	if(this.repeats!=null)
 	    	{
@@ -47,7 +43,7 @@ if(!utils)var utils={};
 
 	       if(typeof callback ==='function'){
 	       	  callback.apply(null,[timers[this.tname].id]);
-	       	  timers[this.tname].state= WAITING;
+	       	  timers[this.tname].state= Timer.WAITING;
 	       }
 
 	    }).bind(this), this.interval);
@@ -69,7 +65,7 @@ if(!utils)var utils={};
 	   window.clearInterval(this.id);
 	   this.repeats=null;
 	   this.interval= 1000;
-	   timers[this.tname].state= KILLED;
+	   timers[this.tname].state= Timer.KILLED;
 	});
 
 	Timer.Counter =0;
@@ -91,8 +87,16 @@ if(!utils)var utils={};
 	  return CURRENT;
 	});
 
+	Timer.state  =(function(name, state){
 
-	utils.Timer = Timer;
+
+	})
+
+   Timer.PENDING = 0;
+   Timer.WAITING = 1;
+   Timer.ACTIVE  = 2;
+   Timer.KILLED  = 3;
+   utils.Timer = Timer;
 
 
 })(utils);
