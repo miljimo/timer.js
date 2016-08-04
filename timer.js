@@ -5,6 +5,20 @@ if(!utils)var utils={};
 	var timers  = timers || {};	
 	var CURRENT = CURRENT || null;
 	var COUNTER = COUNTER || 0;
+
+
+	var __exec =(function(state, timer){
+		switch(state){
+           case Timer.PENDING:
+            timer.kill();
+            timers[timer.tname].state=Timer.KILLED;
+
+            break;
+           case Timer.KILLED:
+            timer.kill();
+           break;
+		}
+	})
 	var Timer =(function(name, interval, repeats)
 	{
 
@@ -26,8 +40,10 @@ if(!utils)var utils={};
 
 	Timer.prototype.start =(function(callback)
 	{   
-		if(!callback && timers[this.tname].state==Timer.KILLED) return;
+		if(!callback || timers[this.tname].state===Timer.KILLED) return;
+         
 	    timers[this.tname].state= Timer.WAITING;
+	    timers[this.tname].callback= callback;
 		this.interval = (typeof this.interval==="number"&& this.interval >=0)?this.interval: 1000;
 	    this.repeats = (typeof this.repeats==="number" && this.repeats > 0)?this.repeats: null;
 	    this.id = window.setInterval((function()
@@ -62,9 +78,7 @@ if(!utils)var utils={};
 
 	Timer.prototype.kill =(function()
 	{
-	   window.clearInterval(this.id);
-	   this.repeats=null;
-	   this.interval= 1000;
+	   window.clearInterval(this.id);	   
 	   timers[this.tname].state= Timer.KILLED;
 	});
 
@@ -87,9 +101,25 @@ if(!utils)var utils={};
 	  return CURRENT;
 	});
 
-	Timer.state  =(function(name, state){
-
-
+	Timer.execute  =(function(name, state){
+     if(typeof name !='string')
+     	var state = name;
+    var timer =null;
+     if(timers[name]){
+     	 timer ==timers[name];
+     }
+     if(typeof state ==='number'){
+       if(timer){
+       	   __exec(state, timer);
+       	   return;
+       }
+      for(p in timers){
+      	var struct =timers[p];
+      	timer = struct.timer;
+        __exec(state, timer);
+      }
+     }
+  
 	})
 
    Timer.PENDING = 0;
@@ -97,6 +127,4 @@ if(!utils)var utils={};
    Timer.ACTIVE  = 2;
    Timer.KILLED  = 3;
    utils.Timer = Timer;
-
-
 })(utils);
